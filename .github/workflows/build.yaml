@@ -32,44 +32,7 @@ jobs:
     - name: Set app version
       id: set_version
       run: |
-        # Regex to match semantic versioning (from semver.org)
-        # Regex will match valid version number https://regex101.com/r/jPSdnV/1
-        regex='^(v|)((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?)$'
-        app_version=""
-        create_release=false
-        latest_released_tag=$(curl "https://api.github.com/repos/${{github.repository}}/releases/latest" | jq -r .tag_name)
-
-        if [[ "${{github.ref_type}}" == "tag" ]]; then
-            pushed_tag="${{github.ref_name}}"
-            if [[ "$pushed_tag" =~ $regex  ]]; then
-                app_version="${BASH_REMATCH[2]}"
-                if [[ "$latest_released_tag" =~ $regex  ]]; then
-                    IFS='.' read -r major minor patch <<< "${BASH_REMATCH[2]}"
-                    next_patch="$major.$minor.$((patch + 1))"
-                    next_minor="$major.$((minor + 1)).0"
-                    next_major="$((major + 1)).0.0"
-                    if [[ "$app_version" == "$next_patch" || "$app_version" == "$next_minor" || "$app_version" == "$next_major" ]]; then
-                        create_release=true
-                    else
-                        echo "Valid tag, but invalid version incrementation, release will NOT be created"
-                    fi
-                else
-                    echo "Invalid relesed version, skip incrementation validation! Release will be created"
-                    create_release=true
-                fi
-            else
-                echo "Invalid tag format, release will NOT be created"
-                app_version=0.0.1+${{ github.sha }}
-            fi
-        else
-            if [[ "$latest_released_tag" =~ $regex  ]]; then
-                app_version=${BASH_REMATCH[2]}+${{ github.sha }}
-            else
-                echo "Invalid relesed version. Setting default version"
-                app_version=0.0.1+${{ github.sha }}
-            fi
-        fi
-
+        app_version=1.0.5~rc1
         echo "Version to use $app_version"
         echo "version=$app_version" >> "$GITHUB_OUTPUT"
         echo "can_create_release=$create_release" >> "$GITHUB_OUTPUT"
@@ -142,6 +105,7 @@ jobs:
         if-no-files-found: error
 
   build_ubuntu:
+    if: false
     runs-on: ubuntu-latest
     needs: identify_version
     env:
@@ -185,6 +149,7 @@ jobs:
         if-no-files-found: error
 
   create_release_from_tag:
+    if: false
     needs:
       - build_arm_native
       - build_ubuntu
@@ -192,7 +157,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: ${{needs.identify_version.outputs.can-create-release == 'true'}}
     steps:
     - name: Download all artifacts
       uses: actions/download-artifact@v8
