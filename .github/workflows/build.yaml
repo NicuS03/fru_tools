@@ -32,7 +32,7 @@ jobs:
     - name: Set app version
       id: set_version
       run: |
-        app_version=1.0.2
+        app_version=2.0.0
         echo "Version to use $app_version"
         echo "version=$app_version" >> "$GITHUB_OUTPUT"
         echo "can_create_release=$create_release" >> "$GITHUB_OUTPUT"
