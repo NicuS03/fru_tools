@@ -1,4 +1,4 @@
-fru-tools (@VERSION@) UNRELEASED; urgency=low
+fru-tools (@VERSION@) trixie; urgency=low
 
   * CI release.
 
